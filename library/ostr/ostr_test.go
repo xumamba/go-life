@@ -25,6 +25,12 @@ func Test_SplitString2StringSlice(t *testing.T) {
 	assert.Equal(t, expectStrSlice, stringSlice)
 }
 
+func Test_JudgePreNumber(t *testing.T) {
+	testStr := "1 2,3.4-5"
+	judgeResult := JudgePreNumber(testStr)
+	assert.Equal(t, true, judgeResult)
+}
+
 func BenchmarkSplitString2StringSlice(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()

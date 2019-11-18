@@ -1,8 +1,21 @@
 package ostr
 
 import (
+	"strconv"
 	"strings"
 )
+
+//JudgePreNumber determine whether the text is purely a number
+func JudgePreNumber(str string) bool {
+	var rule = []string{" ", ",", "-", "."}
+	for _, r := range rule {
+		str = strings.ReplaceAll(str, r, "")
+	}
+	if _, err := strconv.Atoi(str); err == nil {
+		return true
+	}
+	return false
+}
 
 //SplitString2StringSlice convert a string to a string slice
 func SplitString2StringSlice(str string) ([]string, error) {
