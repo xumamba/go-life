@@ -31,14 +31,17 @@ func Test_JudgePreNumber(t *testing.T) {
 	assert.Equal(t, true, judgeResult)
 }
 
-func BenchmarkSplitString2StringSlice(b *testing.B) {
-	b.ResetTimer()
-	b.ReportAllocs()
-	b.RunParallel(func(pb *testing.PB) {
-		for pb.Next() {
-			SplitString2StringSlice(testStr)
-		}
-	})
+func Test_SplitIntSlice2String(t *testing.T) {
+	testSlice := []int64{12, 16, 1, 93}
+	str := SplitIntSlice2String(testSlice)
+	assert.Equal(t, "12,16,1,93,", str)
+	str2 := contrastPerformance(testSlice)
+	assert.Equal(t, "12,16,1,93,", str2)
 }
 
-//BenchmarkSplitString2StringSlice-4   	 4607433	       248 ns/op	     192 B/op	       2 allocs/op
+func Test_SplitString2IntSlice(t *testing.T) {
+	testStr := "12,16,1,93"
+	result, err := SplitString2IntSlice(testStr)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, []int64{12, 16, 1, 93}, result)
+}
