@@ -2,9 +2,6 @@ module go-life
 
 go 1.13
 
-<<<<<<< Updated upstream
-require github.com/stretchr/testify v1.4.0
-=======
 require (
 	github.com/PuerkitoBio/goquery v1.5.0 // indirect
 	github.com/antchfx/htmlquery v1.2.0 // indirect
@@ -22,6 +19,4 @@ require (
 	golang.org/x/net v0.0.0-20191126235420-ef20fe5d7933 // indirect
 	google.golang.org/appengine v1.6.5 // indirect
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
-
 )
->>>>>>> Stashed changes
