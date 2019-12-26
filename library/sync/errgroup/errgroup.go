@@ -45,7 +45,7 @@ func (wg *WaitGroup) do(f func() error) {
 
 func (wg *WaitGroup) GOMAXPROCS(m int) {
 	if m <= 0 {
-		panic("m can not later than 0")
+		panic("m can't be less than 0")
 	}
 	wg.workerOnce.Do(func() {
 		wg.ch = make(chan func() error, m)
