@@ -8,21 +8,35 @@ import (
 )
 
 type WaitGroup struct {
-	err        error
+	err error
+
 	wg         sync.WaitGroup
 	errOnce    sync.Once
 	workerOnce sync.Once
-	ch         chan func() error
-	fs         []func() error
-	cancel     func()
+
+	ch chan func(ctx context.Context) error
+	fs []func(ctx context.Context) error
+
+	ctx    context.Context
+	cancel func()
 }
 
-func WithContext(ctx context.Context) (*WaitGroup, context.Context) {
-	childCtx, cancel := context.WithCancel(ctx)
-	return &WaitGroup{cancel: cancel}, childCtx
+func WithContext(ctx context.Context) *WaitGroup {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	return &WaitGroup{ctx: ctx}
 }
 
-func (wg *WaitGroup) do(f func() error) {
+func WithCancel(parentCtx context.Context) *WaitGroup {
+	if parentCtx == nil {
+		parentCtx = context.Background()
+	}
+	ctx, cancelFunc := context.WithCancel(parentCtx)
+	return &WaitGroup{ctx: ctx, cancel: cancelFunc}
+}
+
+func (wg *WaitGroup) do(f func(ctx context.Context) error) {
 	var err error
 	defer func() {
 		if pErr := recover(); pErr != nil {
@@ -40,7 +54,7 @@ func (wg *WaitGroup) do(f func() error) {
 		}
 		wg.wg.Done()
 	}()
-	err = f()
+	err = f(wg.ctx)
 }
 
 func (wg *WaitGroup) GOMAXPROCS(m int) {
@@ -48,7 +62,7 @@ func (wg *WaitGroup) GOMAXPROCS(m int) {
 		panic("m can not later than 0")
 	}
 	wg.workerOnce.Do(func() {
-		wg.ch = make(chan func() error, m)
+		wg.ch = make(chan func(ctx context.Context) error, m)
 		for i := 0; i < m; i++ {
 			go func() {
 				for f := range wg.ch {
@@ -59,7 +73,7 @@ func (wg *WaitGroup) GOMAXPROCS(m int) {
 	})
 }
 
-func (wg *WaitGroup) Go(f func() error) {
+func (wg *WaitGroup) Go(f func(ctx context.Context) error) {
 	wg.wg.Add(1)
 	if wg.ch != nil {
 		select {
