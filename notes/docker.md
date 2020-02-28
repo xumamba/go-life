@@ -43,4 +43,19 @@
         - 容器内添加
             
             - 直接命令添加
+            
+            docker run -it -v /宿主机绝对路径目录:/容器内目录[:ro] 镜像名
+            
+            $ docker inspect
+            
             - DockerFile添加
+            
+            Hello.java   ---> Hello.class
+            Docker images ---> DockerFile
+            
+            dicker run -it --name child02 --volumes-from child01 centOS 
+            共享
+       
+    - DockerFile
+    
+        - 
