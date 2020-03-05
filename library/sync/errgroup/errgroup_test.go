@@ -3,7 +3,9 @@ package errgroup
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math"
+	"runtime"
 	"testing"
 	"time"
 
@@ -75,4 +77,44 @@ func TestWaitGroup(t *testing.T) {
 func sleep(context.Context) error {
 	time.Sleep(time.Second)
 	return nil
+}
+
+var queue chan int
+
+func TestWithContext(t *testing.T) {
+	InitQueue()
+	id := 0
+	for {
+		// 接收请求
+		if queue != nil {
+			select {
+			case queue <- id:
+			default:
+				// 熔断、限流、降级处理
+			}
+		}
+		time.Sleep(2 * time.Second)
+		id++
+	}
+}
+
+func DoSomething(id int) {
+	var err error
+	defer func() {
+		if pErr := recover(); pErr != nil {
+			buf := make([]byte, 64<<10)
+			buf = buf[:runtime.Stack(buf, false)]
+			err = fmt.Errorf("occur an panic：%s\n,stack:%s", pErr, buf)
+		}
+	}()
+	fmt.Println(id, err)
+}
+
+func InitQueue() {
+	queue = make(chan int, 64)
+	go func() {
+		for f := range queue {
+			DoSomething(f)
+		}
+	}()
 }
