@@ -14,20 +14,16 @@ import (
 )
 
 func Translation(lang, content string) (aimContent, srcLang string) {
-	proxyURL, err := url.Parse("http://H6367E0TXT96MA8D:FA1737979B83D63E@http-dyn.abuyun.com:9020")
-	if err != nil {
-		log.Println(err)
-	}
+	// proxyURL, err := url.Parse("http://H01234567890123P:0123456789012345@http-pro.abuyun.com:9010")
+	// if err != nil {
+	// 	log.Println(err)
+	// }
 	transport := &http.Transport{
-		Proxy:                 http.ProxyURL(proxyURL),
+		// Proxy:                 http.ProxyURL(proxyURL),
 		TLSHandshakeTimeout:   7000 * time.Millisecond,
 		ResponseHeaderTimeout: 7000 * time.Millisecond,
 	}
 	collector := colly.NewCollector()
-	//err := collector.SetProxy("http://H6367E0TXT96MA8D:FA1737979B83D63E@http-dyn.abuyun.com:9020")
-	//if err != nil {
-	//	log.Println("err:", err)
-	//}
 
 	collector.WithTransport(transport)
 	collector.SetRequestTimeout(7000 * time.Millisecond)
@@ -40,9 +36,11 @@ func Translation(lang, content string) (aimContent, srcLang string) {
 		fmt.Println("Visiting", request.URL.String())
 	})
 	collector.OnResponse(func(response *colly.Response) {
-		log.Printf("response:%+v", response)
+		log.Printf("response.Request.Headers:%+v", response.Request.Headers)
+		log.Printf("response.Request.Body:%+v", response.Request.ProxyURL)
 		aimContent, srcLang = getResult(response.Body)
 	})
+	// aimURL = "http://translate.google.cn/"
 	err = collector.Visit(aimURL)
 	if err != nil {
 		log.Println("err:", err)
