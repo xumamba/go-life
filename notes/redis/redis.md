@@ -1,0 +1,30 @@
+# Redis
+- 数据结构
+    - String
+    - Hash
+    - List
+    - Set
+    - Sorted Set
+- 与其它Key-Value缓存产品对比：
+    - Redis支持持久化，内存到磁盘；
+    - 多种数据结构存储；
+    - master-slave模式的数据备份
+- 优势
+    - 读速度：110000次/秒，写速度：81000次/秒
+    - 支持string,hash,list,set,zset存储
+    - 单个操作是原子性的
+    - 多个操作也支持事务，通过MULTI和EXEC指令包起来
+    - 支持publish/subscribe,通知，key过期等特性
+- 配置
+    - redis.conf文件
+    - $CONFIG GET *
+    - $CONFIG SET key value
+    - [配置参数说明](https://www.runoob.com/redis/redis-conf.html)
+- 数据类型
+    - string类型的值最大能存储512MB
+    - 每个hash可以存储 2的32次方 - 1键值对（40多亿）
+    - 列表最多可存储 2的32次方 - 1元素 (4294967295, 每个列表可存储40多亿)
+    - 集合是通过哈希表实现的，所以添加，删除，查找的复杂度都是 O(1)
+    - 集合中最大的成员数为 2的32次方 - 1(4294967295, 每个集合可存储40多亿个成员)
+    - zset分数为double类型
+    
