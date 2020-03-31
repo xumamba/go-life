@@ -123,6 +123,6 @@
         - FROM MAINTAINER RUN EXPOSE WORKDIR ENV ADD COPY VOLUME CMD ENTRYPOINT ONBUILD
  
 ---
--日常命令：
+- 日常命令：
     - 进入后台运行的容器中：$docker exec -it containerID /bin/bash  
     - 临时退出容器 Ctrl+P+Q / exit
