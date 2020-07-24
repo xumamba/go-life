@@ -18,7 +18,7 @@ var (
 	}
 )
 
-//JudgePreNumber determine whether the text is purely a number
+// JudgePreNumber determine whether the text is purely a number
 func JudgePreNumber(str string) bool {
 	var rule = []string{" ", ",", "-", "."}
 	for _, r := range rule {
@@ -30,7 +30,7 @@ func JudgePreNumber(str string) bool {
 	return false
 }
 
-//SplitString2StringSlice convert a string to a string slice
+// SplitString2StringSlice convert a string to a string slice
 func SplitString2StringSlice(str string) ([]string, error) {
 	var (
 		res []string
@@ -48,7 +48,7 @@ func SplitString2StringSlice(str string) ([]string, error) {
 	return res, err
 }
 
-//SplitIntSlice2String convert a int64 slice to a string,like int1,int2,int3
+// SplitIntSlice2String convert a int64 slice to a string,like int1,int2,int3
 func SplitIntSlice2String(intSlice []int64) string {
 	if len(intSlice) == 0 {
 		return ""
@@ -67,7 +67,7 @@ func SplitIntSlice2String(intSlice []int64) string {
 	return result
 }
 
-//SplitString2IntSlice split string into int64 slice
+// SplitString2IntSlice split string into int64 slice
 func SplitString2IntSlice(str string) ([]int64, error) {
 	if len(str) == 0 {
 		return nil, nil
