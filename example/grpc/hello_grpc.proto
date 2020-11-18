@@ -1,0 +1,15 @@
+// 目前官方建议使用proto3，这样可以使用gRPC支持全部范围的的语言，并且能避免 proto2 客户端与 proto3 服务端交互时出现的兼容性问题，反之亦然。
+syntax = "proto3";
+
+service HelloGRPC{
+  rpc SayHello(HelloRequest) returns (HelloResponse){}
+}
+
+message HelloRequest{
+  string greeting = 1;
+  }
+
+message HelloResponse{
+  string reply = 1;
+  }
+

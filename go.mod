@@ -10,7 +10,9 @@ require (
 	github.com/antchfx/xpath v1.1.2 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gocolly/colly v1.2.0
+	github.com/gogo/protobuf v1.3.1
 	github.com/golang/groupcache v0.0.0-20191027212112-611e8accdfc9 // indirect
+	github.com/golang/protobuf v1.4.1
 	github.com/kennygrant/sanitize v1.2.4 // indirect
 	github.com/robertkrimen/otto v0.0.0-20180617131154-15f95af6e78d
 	github.com/saintfish/chardet v0.0.0-20120816061221-3af4cd4741ca // indirect
@@ -18,5 +20,6 @@ require (
 	github.com/temoto/robotstxt v1.1.1 // indirect
 	github.com/tidwall/gjson v1.3.5
 	google.golang.org/appengine v1.6.5 // indirect
+	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 )
