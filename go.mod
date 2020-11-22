@@ -20,6 +20,7 @@ require (
 	github.com/temoto/robotstxt v1.1.1 // indirect
 	github.com/tidwall/gjson v1.3.5
 	google.golang.org/appengine v1.6.5 // indirect
-	google.golang.org/protobuf v1.25.0 // indirect
+	google.golang.org/grpc v1.33.0
+	google.golang.org/protobuf v1.25.0
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 )
