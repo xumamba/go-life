@@ -12,7 +12,7 @@ import (
 	"os"
 	"strings"
 
-	eg "go-life/example/grpc"
+	"go-life/example/grpc/socket"
 
 	"github.com/gogo/protobuf/proto"
 )
@@ -41,7 +41,7 @@ func simpleService(conn net.Conn) {
 		if err != nil {
 			panic(err)
 		}
-		request := &eg.HelloRequest{}
+		request := &socket.HelloRequest{}
 		reqData := buf[:count]
 
 		err = proto.Unmarshal(reqData, request)
@@ -54,7 +54,7 @@ func simpleService(conn net.Conn) {
 			os.Exit(1)
 		}
 
-		response := &eg.HelloResponse{
+		response := &socket.HelloResponse{
 			Reply: strings.ToUpper(request.Greeting),
 		}
 		bytes, err := proto.Marshal(response)

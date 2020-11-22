@@ -12,7 +12,7 @@ import (
 	"net"
 	"os"
 
-	eg "go-life/example/grpc"
+	"go-life/example/grpc/socket"
 
 	"github.com/gogo/protobuf/proto"
 )
@@ -30,7 +30,7 @@ func main() {
 	buf := make([]byte, 4096, 4096)
 	for scanner.Scan() {
 		text := scanner.Text()
-		request := &eg.HelloRequest{
+		request := &socket.HelloRequest{
 			Greeting: text,
 		}
 		bytes, err := proto.Marshal(request)
@@ -44,7 +44,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		response := &eg.HelloResponse{}
+		response := &socket.HelloResponse{}
 		respData := buf[:count]
 		err = proto.Unmarshal(respData, response)
 		if err != nil {
