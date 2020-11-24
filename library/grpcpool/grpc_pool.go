@@ -27,7 +27,7 @@ type ConnectionPool struct {
 	cancel context.CancelFunc
 
 	dial        DialFunc
-	stateCheck StateCheckFunc
+	stateCheck  StateCheckFunc
 	connections map[string]*gRPCConn
 	viableConn  map[string]*gRPCConn
 
@@ -36,7 +36,7 @@ type ConnectionPool struct {
 	heartbeatInterval time.Duration
 }
 
-func (cp *ConnectionPool) getConn(addr string) (*grpc.ClientConn, error) {
+func (cp *ConnectionPool) getConn(addr string, force bool) (*grpc.ClientConn, error) {
 	cp.locker.Lock()
 	conn, ok := cp.connections[addr]
 	if !ok {
@@ -48,7 +48,7 @@ func (cp *ConnectionPool) getConn(addr string) (*grpc.ClientConn, error) {
 	}
 	cp.locker.Unlock()
 
-	err := conn.activateConn(cp.ctx)
+	err := conn.activateConn(cp.ctx, force)
 	if err != nil {
 		return nil, err
 	}
@@ -56,14 +56,14 @@ func (cp *ConnectionPool) getConn(addr string) (*grpc.ClientConn, error) {
 }
 
 // connReady place the conn into the viable connection pool.
-func (cp *ConnectionPool) connReady(conn *gRPCConn)  {
+func (cp *ConnectionPool) connReady(conn *gRPCConn) {
 	cp.locker.Lock()
 	defer cp.locker.Unlock()
 	cp.viableConn[conn.addr] = conn
 }
 
 // connUnavailable remove addr from the viable connection pool.
-func (cp *ConnectionPool) connUnavailable(addr string)  {
+func (cp *ConnectionPool) connUnavailable(addr string) {
 	cp.locker.Lock()
 	defer cp.locker.Unlock()
 	delete(cp.viableConn, addr)
@@ -74,16 +74,14 @@ func (cp *ConnectionPool) getViableConn() []string {
 	cp.locker.RLock()
 	defer cp.locker.RUnlock()
 	var viableConnections []string
-	for addr := range cp.viableConn{
+	for addr := range cp.viableConn {
 		viableConnections = append(viableConnections, addr)
 	}
 	return viableConnections
 }
 
-
 // InitOption functional options
 type InitOption func(pool *ConnectionPool)
-
 
 // New initialize grpc connection pool
 func New(dial DialFunc, opts ...InitOption) *ConnectionPool {
@@ -92,8 +90,8 @@ func New(dial DialFunc, opts ...InitOption) *ConnectionPool {
 		ctx:    ctx,
 		cancel: cancelFunc,
 
-		dial:        dial,c
-		stateCheck: defaultStateCheck,
+		dial:        dial,
+		stateCheck:  defaultStateCheck,
 		connections: make(map[string]*gRPCConn),
 		viableConn:  make(map[string]*gRPCConn),
 
@@ -107,4 +105,28 @@ func New(dial DialFunc, opts ...InitOption) *ConnectionPool {
 	}
 
 	return cp
+}
+
+var (
+	connectionPool *ConnectionPool
+	once           sync.Once
+)
+
+func pool() *ConnectionPool {
+	once.Do(func() {
+		connectionPool = New(defaultDialFunc)
+	})
+	return connectionPool
+}
+
+func GetConn(addr string) (*grpc.ClientConn, error) {
+	return pool().getConn(addr, false)
+}
+
+func Dial(addr string) (*grpc.ClientConn, error) {
+	return pool().getConn(addr, true)
+}
+
+func CurrentViableConn() []string {
+	return pool().getViableConn()
 }
