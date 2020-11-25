@@ -15,23 +15,33 @@ import (
 	"google.golang.org/grpc/connectivity"
 )
 
-// DialFunc
+// DialFunc creates a client connection to the given address.
 type DialFunc func(addr string) (*grpc.ClientConn, error)
 
-// StateCheckFunc
+// StateCheckFunc check the connectivity.State of ClientConn.
 type StateCheckFunc func(ctx context.Context, conn *grpc.ClientConn) connectivity.State
+
+// Pool connections pool
+type Pool interface {
+	// GetConn get a connection
+	GetConn(addr string) (*grpc.ClientConn, error)
+	// Dial force a new connection
+	Dial(addr string) (*grpc.ClientConn, error)
+	// GetViableConn get current viable connections
+	GetViableConn() []string
+}
 
 type ConnectionPool struct {
 	locker sync.RWMutex
 	ctx    context.Context
 	cancel context.CancelFunc
 
-	dial        DialFunc
-	stateCheck  StateCheckFunc
-	connections map[string]*gRPCConn
-	viableConn  map[string]*gRPCConn
+	dialFunc       DialFunc
+	stateCheckFunc StateCheckFunc
+	connections    map[string]*gRPCConn
+	viableConn     map[string]*gRPCConn
 
-	timeout           time.Duration
+	expiresTime       time.Duration
 	checkReadyTimeout time.Duration
 	heartbeatInterval time.Duration
 }
@@ -69,8 +79,49 @@ func (cp *ConnectionPool) connUnavailable(addr string) {
 	delete(cp.viableConn, addr)
 }
 
-// getViableConn get the currently valid connections.
-func (cp *ConnectionPool) getViableConn() []string {
+// InitOption functional options
+type InitOption func(pool *ConnectionPool)
+
+func SetExpiresTime(expiresTime time.Duration) InitOption {
+	return func(pool *ConnectionPool) {
+		pool.expiresTime = expiresTime
+	}
+}
+
+func SetCheckReadyTimeout(timeout time.Duration) InitOption {
+	return func(pool *ConnectionPool) {
+		pool.checkReadyTimeout = timeout
+	}
+}
+
+func SetHeartbeatInterval(interval time.Duration) InitOption {
+	return func(pool *ConnectionPool) {
+		pool.heartbeatInterval = interval
+	}
+}
+
+func SetDialFunc(dial DialFunc) InitOption  {
+	return func(pool *ConnectionPool) {
+		pool.dialFunc = dial
+	}
+}
+
+func SetStateCheckFunc(stateCheck StateCheckFunc) InitOption {
+	return func(pool *ConnectionPool) {
+		pool.stateCheckFunc = stateCheck
+	}
+}
+
+func (cp *ConnectionPool) GetConn(addr string) (*grpc.ClientConn, error) {
+	return cp.getConn(addr, false)
+}
+
+func (cp *ConnectionPool) Dial(addr string) (*grpc.ClientConn, error) {
+	return cp.getConn(addr, true)
+}
+
+// GetViableConn get the currently valid connections.
+func (cp *ConnectionPool) GetViableConn() []string {
 	cp.locker.RLock()
 	defer cp.locker.RUnlock()
 	var viableConnections []string
@@ -80,24 +131,21 @@ func (cp *ConnectionPool) getViableConn() []string {
 	return viableConnections
 }
 
-// InitOption functional options
-type InitOption func(pool *ConnectionPool)
-
 // New initialize grpc connection pool
-func New(dial DialFunc, opts ...InitOption) *ConnectionPool {
+func New(opts ...InitOption) *ConnectionPool {
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	cp := &ConnectionPool{
 		ctx:    ctx,
 		cancel: cancelFunc,
 
-		dial:        dial,
-		stateCheck:  defaultStateCheck,
-		connections: make(map[string]*gRPCConn),
-		viableConn:  make(map[string]*gRPCConn),
+		dialFunc:       defaultDial,
+		stateCheckFunc: defaultStateCheck,
+		connections:    make(map[string]*gRPCConn),
+		viableConn:     make(map[string]*gRPCConn),
 
-		timeout:           100 * time.Second,
-		checkReadyTimeout: 5 * time.Second,
-		heartbeatInterval: 10 * time.Second,
+		expiresTime:       defaultTimeout,
+		checkReadyTimeout: defaultCheckReadyTimeout,
+		heartbeatInterval: defaultHeartbeatInterval,
 	}
 
 	for _, opt := range opts {
@@ -114,19 +162,19 @@ var (
 
 func pool() *ConnectionPool {
 	once.Do(func() {
-		connectionPool = New(defaultDialFunc)
+		connectionPool = New()
 	})
 	return connectionPool
 }
 
 func GetConn(addr string) (*grpc.ClientConn, error) {
-	return pool().getConn(addr, false)
+	return pool().GetConn(addr)
 }
 
 func Dial(addr string) (*grpc.ClientConn, error) {
-	return pool().getConn(addr, true)
+	return pool().Dial(addr)
 }
 
 func CurrentViableConn() []string {
-	return pool().getViableConn()
+	return pool().GetViableConn()
 }

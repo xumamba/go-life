@@ -14,7 +14,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 )
-
+// gRPCConn
 type gRPCConn struct {
 	locker sync.RWMutex
 
@@ -44,22 +44,22 @@ func (c *gRPCConn) activateConn(ctx context.Context, force bool) error {
 	if c.entity != nil {
 		c.entity.Close()
 	}
-	clientConn, err := c.pool.dial(c.addr)
+	clientConn, err := c.pool.dialFunc(c.addr)
 	if err != nil {
 		return err
 	}
 	c.entity = clientConn
 
-	readyCtx, cancelFunc := context.WithTimeout(ctx, c.pool.checkReadyTimeout)
-	defer cancelFunc()
-	entityStatus := c.pool.stateCheck(readyCtx, c.entity)
-	if entityStatus != connectivity.Ready {
-		return errNoReady
-	}
-
 	heartbeatCtx, hbCancelFunc := context.WithCancel(ctx)
 	c.cancelFunc = hbCancelFunc
 	go c.heartbeat(heartbeatCtx)
+
+	readyCtx, cancelFunc := context.WithTimeout(ctx, c.pool.checkReadyTimeout)
+	defer cancelFunc()
+	entityStatus := c.pool.stateCheckFunc(readyCtx, c.entity)
+	if entityStatus != connectivity.Ready {
+		return errNoReady
+	}
 
 	c.ready()
 	return nil
@@ -67,7 +67,7 @@ func (c *gRPCConn) activateConn(ctx context.Context, force bool) error {
 
 func (c *gRPCConn) ready() {
 	c.state = connectivity.Ready
-	c.expires = time.Now().Add(c.pool.timeout)
+	c.expires = time.Now().Add(c.pool.expiresTime)
 	c.retryTimes = 0
 	c.pool.connReady(c)
 }
@@ -109,10 +109,12 @@ func (c *gRPCConn) heartbeat(ctx context.Context) {
 }
 
 func (c *gRPCConn) healthCheck(ctx context.Context) {
+	c.locker.Lock()
+	defer c.locker.Unlock()
 	ctx, cancelFunc := context.WithTimeout(ctx, c.pool.checkReadyTimeout)
 	defer cancelFunc()
 
-	switch c.pool.stateCheck(ctx, c.entity) {
+	switch c.pool.stateCheckFunc(ctx, c.entity) {
 	case connectivity.Ready:
 		c.ready()
 	case connectivity.Shutdown:
