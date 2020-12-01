@@ -5,14 +5,17 @@ package stream;
 option go_package = "go-life/example/grpc/stream/stream";
 
 service Students{
+  // GetStudent 获取学生班级信息
   rpc GetStudent(Student) returns (Feature) {}
-  rpc ListStudents(Rectangle) returns (stream Feature) {}
-  rpc RecordRoute(stream Student) returns (StudentSummary) {}
+  // ListStudents 获取某个班级的所有学生
+  rpc ListStudents(Class) returns (stream Student) {}
+  // RecordStudents 学生报道分班的场景
+  rpc RecordStudents(stream Student) returns (StudentSummary) {}
 }
 
 message Student{
-  int32 id = 1;  // 学号
-  int32 name = 2;  // 姓名
+  int64 id = 1;  // 学号
+  string name = 2;  // 姓名
 }
 
 message Feature{
@@ -20,12 +23,12 @@ message Feature{
   Student student_info = 2;
 }
 
-message Rectangle{
+message Class{
   int32 class_id = 1;
 }
 
 message StudentSummary{
   int32 student_count = 1;
-  int32 feature_count = 2;
+  int32 class_count = 2;
   int32 elapsed_time = 3;
 }

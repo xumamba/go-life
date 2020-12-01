@@ -17,9 +17,12 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type StudentsClient interface {
+	// GetStudent 获取学生班级信息
 	GetStudent(ctx context.Context, in *Student, opts ...grpc.CallOption) (*Feature, error)
-	ListStudents(ctx context.Context, in *Rectangle, opts ...grpc.CallOption) (Students_ListStudentsClient, error)
-	RecordRoute(ctx context.Context, opts ...grpc.CallOption) (Students_RecordRouteClient, error)
+	// ListStudents 获取某个班级的所有学生
+	ListStudents(ctx context.Context, in *Class, opts ...grpc.CallOption) (Students_ListStudentsClient, error)
+	// RecordStudents 学生报道分班的场景
+	RecordStudents(ctx context.Context, opts ...grpc.CallOption) (Students_RecordStudentsClient, error)
 }
 
 type studentsClient struct {
@@ -39,7 +42,7 @@ func (c *studentsClient) GetStudent(ctx context.Context, in *Student, opts ...gr
 	return out, nil
 }
 
-func (c *studentsClient) ListStudents(ctx context.Context, in *Rectangle, opts ...grpc.CallOption) (Students_ListStudentsClient, error) {
+func (c *studentsClient) ListStudents(ctx context.Context, in *Class, opts ...grpc.CallOption) (Students_ListStudentsClient, error) {
 	stream, err := c.cc.NewStream(ctx, &_Students_serviceDesc.Streams[0], "/stream.Students/ListStudents", opts...)
 	if err != nil {
 		return nil, err
@@ -55,7 +58,7 @@ func (c *studentsClient) ListStudents(ctx context.Context, in *Rectangle, opts .
 }
 
 type Students_ListStudentsClient interface {
-	Recv() (*Feature, error)
+	Recv() (*Student, error)
 	grpc.ClientStream
 }
 
@@ -63,38 +66,38 @@ type studentsListStudentsClient struct {
 	grpc.ClientStream
 }
 
-func (x *studentsListStudentsClient) Recv() (*Feature, error) {
-	m := new(Feature)
+func (x *studentsListStudentsClient) Recv() (*Student, error) {
+	m := new(Student)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
 }
 
-func (c *studentsClient) RecordRoute(ctx context.Context, opts ...grpc.CallOption) (Students_RecordRouteClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_Students_serviceDesc.Streams[1], "/stream.Students/RecordRoute", opts...)
+func (c *studentsClient) RecordStudents(ctx context.Context, opts ...grpc.CallOption) (Students_RecordStudentsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_Students_serviceDesc.Streams[1], "/stream.Students/RecordStudents", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &studentsRecordRouteClient{stream}
+	x := &studentsRecordStudentsClient{stream}
 	return x, nil
 }
 
-type Students_RecordRouteClient interface {
+type Students_RecordStudentsClient interface {
 	Send(*Student) error
 	CloseAndRecv() (*StudentSummary, error)
 	grpc.ClientStream
 }
 
-type studentsRecordRouteClient struct {
+type studentsRecordStudentsClient struct {
 	grpc.ClientStream
 }
 
-func (x *studentsRecordRouteClient) Send(m *Student) error {
+func (x *studentsRecordStudentsClient) Send(m *Student) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *studentsRecordRouteClient) CloseAndRecv() (*StudentSummary, error) {
+func (x *studentsRecordStudentsClient) CloseAndRecv() (*StudentSummary, error) {
 	if err := x.ClientStream.CloseSend(); err != nil {
 		return nil, err
 	}
@@ -109,9 +112,12 @@ func (x *studentsRecordRouteClient) CloseAndRecv() (*StudentSummary, error) {
 // All implementations must embed UnimplementedStudentsServer
 // for forward compatibility
 type StudentsServer interface {
+	// GetStudent 获取学生班级信息
 	GetStudent(context.Context, *Student) (*Feature, error)
-	ListStudents(*Rectangle, Students_ListStudentsServer) error
-	RecordRoute(Students_RecordRouteServer) error
+	// ListStudents 获取某个班级的所有学生
+	ListStudents(*Class, Students_ListStudentsServer) error
+	// RecordStudents 学生报道分班的场景
+	RecordStudents(Students_RecordStudentsServer) error
 	mustEmbedUnimplementedStudentsServer()
 }
 
@@ -122,11 +128,11 @@ type UnimplementedStudentsServer struct {
 func (UnimplementedStudentsServer) GetStudent(context.Context, *Student) (*Feature, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetStudent not implemented")
 }
-func (UnimplementedStudentsServer) ListStudents(*Rectangle, Students_ListStudentsServer) error {
+func (UnimplementedStudentsServer) ListStudents(*Class, Students_ListStudentsServer) error {
 	return status.Errorf(codes.Unimplemented, "method ListStudents not implemented")
 }
-func (UnimplementedStudentsServer) RecordRoute(Students_RecordRouteServer) error {
-	return status.Errorf(codes.Unimplemented, "method RecordRoute not implemented")
+func (UnimplementedStudentsServer) RecordStudents(Students_RecordStudentsServer) error {
+	return status.Errorf(codes.Unimplemented, "method RecordStudents not implemented")
 }
 func (UnimplementedStudentsServer) mustEmbedUnimplementedStudentsServer() {}
 
@@ -160,7 +166,7 @@ func _Students_GetStudent_Handler(srv interface{}, ctx context.Context, dec func
 }
 
 func _Students_ListStudents_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(Rectangle)
+	m := new(Class)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
@@ -168,7 +174,7 @@ func _Students_ListStudents_Handler(srv interface{}, stream grpc.ServerStream) e
 }
 
 type Students_ListStudentsServer interface {
-	Send(*Feature) error
+	Send(*Student) error
 	grpc.ServerStream
 }
 
@@ -176,29 +182,29 @@ type studentsListStudentsServer struct {
 	grpc.ServerStream
 }
 
-func (x *studentsListStudentsServer) Send(m *Feature) error {
+func (x *studentsListStudentsServer) Send(m *Student) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _Students_RecordRoute_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(StudentsServer).RecordRoute(&studentsRecordRouteServer{stream})
+func _Students_RecordStudents_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(StudentsServer).RecordStudents(&studentsRecordStudentsServer{stream})
 }
 
-type Students_RecordRouteServer interface {
+type Students_RecordStudentsServer interface {
 	SendAndClose(*StudentSummary) error
 	Recv() (*Student, error)
 	grpc.ServerStream
 }
 
-type studentsRecordRouteServer struct {
+type studentsRecordStudentsServer struct {
 	grpc.ServerStream
 }
 
-func (x *studentsRecordRouteServer) SendAndClose(m *StudentSummary) error {
+func (x *studentsRecordStudentsServer) SendAndClose(m *StudentSummary) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *studentsRecordRouteServer) Recv() (*Student, error) {
+func (x *studentsRecordStudentsServer) Recv() (*Student, error) {
 	m := new(Student)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -222,8 +228,8 @@ var _Students_serviceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 		{
-			StreamName:    "RecordRoute",
-			Handler:       _Students_RecordRoute_Handler,
+			StreamName:    "RecordStudents",
+			Handler:       _Students_RecordStudents_Handler,
 			ClientStreams: true,
 		},
 	},
