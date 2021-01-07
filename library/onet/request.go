@@ -20,7 +20,3 @@ type MultipartParam struct {
 	FileName  string
 	FileBody  io.Reader
 }
-
-func (req *Request) NewRequest(opts ...Option) *Request {
-
-}
