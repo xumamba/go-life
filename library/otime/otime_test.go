@@ -28,10 +28,10 @@ func TestTimeStamp_Scan(t *testing.T) {
 
 func TestFunc(t *testing.T) {
 	ts1, ts2 := int64(1613680159), int64(1614763332)
-	days := GetDaysByTimestamp(ts1, ts2)
+	days := GetDaysByTimestamp(ts2, ts1)
 	fmt.Println(days)
 
-	fmt.Println(GetDate(ts1))
 	fmt.Println(GetDate(ts2))
+	fmt.Println(GetDate(ts1))
 
 }
