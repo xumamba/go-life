@@ -2,6 +2,7 @@ package otime
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -23,4 +24,14 @@ func TestTimeStamp_Scan(t *testing.T) {
 	assert.True(t, ok)
 	assert.True(t, 2*time.Second > time.Until(deadline))
 	assert.True(t, time.Second < time.Until(deadline))
+}
+
+func TestFunc(t *testing.T) {
+	ts1, ts2 := int64(1613680159), int64(1614763332)
+	days := GetDaysByTimestamp(ts1, ts2)
+	fmt.Println(days)
+
+	fmt.Println(GetDate(ts1))
+	fmt.Println(GetDate(ts2))
+
 }

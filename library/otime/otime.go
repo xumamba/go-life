@@ -48,3 +48,17 @@ func (d Duration) Shrink(ctx context.Context) (Duration, context.Context, contex
 	context, cancelFunc := context.WithTimeout(ctx, time.Duration(d))
 	return d, context, cancelFunc
 }
+
+// 获取两个时间戳相隔天数
+func GetDaysByTimestamp(tsLittle, tsBig int64) int {
+	nowDate, _ := time.Parse("2006-01-02", time.Unix(tsBig, 0).Format("2006-01-02"))
+	aimDate, _ := time.Parse("2006-01-02", time.Unix(tsLittle, 0).Format("2006-01-02"))
+	hours := nowDate.Sub(aimDate)
+	return int(hours.Hours() / 24)
+}
+
+// 获取指定时间戳对应的日期
+func GetDate(timestamp int64) int {
+	date, _ := strconv.Atoi(time.Unix(timestamp, 0).Format("20060102"))
+	return date
+}
